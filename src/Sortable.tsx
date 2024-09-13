@@ -319,6 +319,8 @@ export function SortableItem({
     getNewIndex,
   });
 
+  console.log(id, transform);
+
   return (
     <Item
       ref={setNodeRef}
