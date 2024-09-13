@@ -206,112 +206,71 @@ export function Sortable({
               More Tools
             </DropdownMenu.SubTrigger>
             <DropdownMenu.Portal>
-              <DropdownMenu.SubContent className="DropdownMenuSubContent">
-                <DropdownMenu.Item className="DropdownMenuItem">
-                  Save Page As… <div className="RightSlot">⌘+S</div>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item className="DropdownMenuItem">
-                  Create Shortcut…
-                </DropdownMenu.Item>
-                <DropdownMenu.Item className="DropdownMenuItem">
-                  Name Window…
-                </DropdownMenu.Item>
-                <DropdownMenu.Separator className="DropdownMenu.Separator" />
-                <DropdownMenu.Item className="DropdownMenuItem">
-                  Developer Tools
-                </DropdownMenu.Item>
+              <DropdownMenu.SubContent
+                style={{ maxHeight: 200, overflow: "auto" }}
+                className="DropdownMenuSubContent"
+              >
+                <DndContext
+                  accessibility={{
+                    announcements,
+                    screenReaderInstructions,
+                  }}
+                  sensors={sensors}
+                  collisionDetection={collisionDetection}
+                  onDragStart={({ active }) => {
+                    if (!active) {
+                      return;
+                    }
+
+                    setActiveId(active.id);
+                  }}
+                  onDragEnd={({ over }) => {
+                    setActiveId(null);
+
+                    if (over) {
+                      const overIndex = getIndex(over.id);
+                      if (activeIndex !== overIndex) {
+                        setItems((items) =>
+                          reorderItems(items, activeIndex, overIndex)
+                        );
+                      }
+                    }
+                  }}
+                  onDragCancel={() => setActiveId(null)}
+                  measuring={measuring}
+                  modifiers={modifiers}
+                >
+                  <Wrapper style={style} center>
+                    <SortableContext items={items} strategy={strategy}>
+                      <Container>
+                        {items.map((value, index) => (
+                          <DropdownMenu.Item className="DropdownMenuItem">
+                            <SortableItem
+                              key={value}
+                              id={value}
+                              handle={handle}
+                              index={index}
+                              style={getItemStyles}
+                              wrapperStyle={wrapperStyle}
+                              disabled={isDisabled(value)}
+                              renderItem={renderItem}
+                              onRemove={handleRemove}
+                              animateLayoutChanges={animateLayoutChanges}
+                              useDragOverlay={useDragOverlay}
+                              getNewIndex={getNewIndex}
+                            />
+                          </DropdownMenu.Item>
+                        ))}
+                      </Container>
+                    </SortableContext>
+                  </Wrapper>
+                </DndContext>
               </DropdownMenu.SubContent>
             </DropdownMenu.Portal>
           </DropdownMenu.Sub>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
-  );
-
-  return (
-    <DndContext
-      accessibility={{
-        announcements,
-        screenReaderInstructions,
-      }}
-      sensors={sensors}
-      collisionDetection={collisionDetection}
-      onDragStart={({ active }) => {
-        if (!active) {
-          return;
-        }
-
-        setActiveId(active.id);
-      }}
-      onDragEnd={({ over }) => {
-        setActiveId(null);
-
-        if (over) {
-          const overIndex = getIndex(over.id);
-          if (activeIndex !== overIndex) {
-            setItems((items) => reorderItems(items, activeIndex, overIndex));
-          }
-        }
-      }}
-      onDragCancel={() => setActiveId(null)}
-      measuring={measuring}
-      modifiers={modifiers}
-    >
-      <Wrapper style={style} center>
-        <SortableContext items={items} strategy={strategy}>
-          <Container>
-            {items.map((value, index) => (
-              <SortableItem
-                key={value}
-                id={value}
-                handle={handle}
-                index={index}
-                style={getItemStyles}
-                wrapperStyle={wrapperStyle}
-                disabled={isDisabled(value)}
-                renderItem={renderItem}
-                onRemove={handleRemove}
-                animateLayoutChanges={animateLayoutChanges}
-                useDragOverlay={useDragOverlay}
-                getNewIndex={getNewIndex}
-              />
-            ))}
-          </Container>
-        </SortableContext>
-      </Wrapper>
-      {useDragOverlay
-        ? createPortal(
-            <DragOverlay
-              adjustScale={adjustScale}
-              dropAnimation={dropAnimation}
-            >
-              {activeId ? (
-                <Item
-                  value={items[activeIndex]}
-                  handle={handle}
-                  renderItem={renderItem}
-                  wrapperStyle={wrapperStyle({
-                    active: { id: activeId },
-                    index: activeIndex,
-                    isDragging: true,
-                    id: items[activeIndex],
-                  })}
-                  style={getItemStyles({
-                    id: items[activeIndex],
-                    index: activeIndex,
-                    isSorting: activeId !== null,
-                    isDragging: true,
-                    overIndex: -1,
-                    isDragOverlay: true,
-                  })}
-                  dragOverlay
-                />
-              ) : null}
-            </DragOverlay>,
-            document.body
-          )
-        : null}
-    </DndContext>
   );
 }
 
